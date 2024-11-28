@@ -18,17 +18,37 @@ const ReconstructionUI = () => {
     'combo_diamond': 'Center diamond'
   };
 
-  const handleFileSelect = (event, compositeId) => {
+  const handleFileSelect = (event, selectedCompositeId) => {
     const file = event.target.files[0];
     if (file) {
-      setSelectedFiles(prev => ({
-        ...prev,
-        [compositeId]: file
-      }));
+      // Create a copy of the current selectedFiles
+      const updatedFiles = { ...selectedFiles };
+      
+      // Update only the selected composite's file
+      updatedFiles[selectedCompositeId] = file;
+      
+      // Update state with the new files object
+      setSelectedFiles(updatedFiles);
+      
+      // Clear the input value to allow selecting the same file again
+      event.target.value = '';
     }
   };
 
-// ... other imports and code remain the same ...
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const handleDrop = (event, compositeId) => {
+    event.preventDefault();
+    
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      const updatedFiles = { ...selectedFiles };
+      updatedFiles[compositeId] = file;
+      setSelectedFiles(updatedFiles);
+    }
+  };
 
   const reconstructImage = async () => {
     setLoading(true);
@@ -40,7 +60,6 @@ const ReconstructionUI = () => {
         formData.append('files', file, `${compositeId}.png`);
       });
 
-      // Use the new endpoint
       const response = await fetch(`${API_URL}/api/reconstruct_from_composites`, {
         method: 'POST',
         body: formData,
@@ -59,7 +78,11 @@ const ReconstructionUI = () => {
     }
   };
 
-// ... rest of the component remains the same ...
+  const handleRemoveFile = (compositeId) => {
+    const updatedFiles = { ...selectedFiles };
+    delete updatedFiles[compositeId];
+    setSelectedFiles(updatedFiles);
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -73,18 +96,28 @@ const ReconstructionUI = () => {
           {Object.entries(composites).map(([compositeId, description]) => (
             <div key={compositeId} className="border rounded-lg p-4">
               <div className="mb-2 font-medium">{description}</div>
-              <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 cursor-pointer">
+              <div
+                className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors"
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, compositeId)}
+              >
                 {selectedFiles[compositeId] ? (
-                  <div className="w-full aspect-square relative">
+                  <div className="w-full aspect-square relative group">
                     <img 
                       src={URL.createObjectURL(selectedFiles[compositeId])} 
                       alt={description}
                       className="w-full h-full object-contain"
                     />
+                    <button
+                      onClick={() => handleRemoveFile(compositeId)}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </button>
                   </div>
                 ) : (
                   <div className="text-center">
-                    <div className="text-gray-500 mb-2">Click to upload</div>
+                    <div className="text-gray-500 mb-2">Drag and drop or click to upload</div>
                   </div>
                 )}
                 <input 
@@ -101,7 +134,7 @@ const ReconstructionUI = () => {
         <button
           onClick={reconstructImage}
           disabled={Object.keys(selectedFiles).length < Object.keys(composites).length || loading}
-          className="w-full bg-blue-500 text-white rounded-lg px-4 py-2 font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          className="w-full bg-blue-500 text-white rounded-lg px-4 py-2 font-medium hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Reconstructing...' : 'Reconstruct Image'}
         </button>
