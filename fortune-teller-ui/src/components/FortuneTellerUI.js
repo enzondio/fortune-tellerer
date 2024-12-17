@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // Define API base URL - adjust port if needed
-const API_URL = 'http://localhost:5000';
+const API_URL = 'http://142.11.205.221:5000';
 
 function FortuneTellerUI() {
   const [image, setImage] = useState(null);

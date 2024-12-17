@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'http://142.11.205.221:5000';
 
 const ReconstructionUI = () => {
   const [selectedFiles, setSelectedFiles] = useState({});

@@ -165,6 +165,7 @@ def reconstruct_from_composites():
         })
         
     except Exception as e:
+        print (str(e))
         return jsonify({'error': str(e)}), 500
 
 @app.after_request
@@ -176,4 +177,4 @@ def add_cors_headers(response):
     return response
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000,host = '0.0.0.0' )
